@@ -11,7 +11,7 @@ payload.js
 psfree.mjs
 send.mjs
 fonts/LiberationMono-Regular.ttf
-# kpatch/800.bin
+kpatch/800.bin
 # kpatch/850.bin
 kpatch/900.bin
 # kpatch/903.bin
@@ -23,6 +23,7 @@ lapse/ps4/900.mjs
 lapse/ps4/903.mjs
 lapse/ps4/950.mjs
 module/chain.mjs
+module/constants.mjs
 module/int64.mjs
 module/mem.mjs
 module/memtools.mjs
