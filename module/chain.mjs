@@ -551,7 +551,7 @@ function load_fw_specific(version) {
     return import("../rop/ps4/700.mjs");
   } else if (0x750 <= value && value < 0x800) {
     // 7.50, 7.51, 7.55
-    return import("../rop/ps4/750.mjs");Add commentMore actions
+    return import("../rop/ps4/750.mjs");
   } else if (0x800 <= value && value < 0x850) {
     // 8.00, 8.01, 8.03
     return import("../rop/ps4/800.mjs");
