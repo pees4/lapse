@@ -1930,38 +1930,42 @@ kexploit().then((success) => {
 */
 kexploit().then((success) => {
   if (success) {
-      if (0x700 <= version && version < 0x701) {
+	if (is_ps4) {
+      if (fw_config === fw_ps4_700) {
         runPayload("./ps4-hen-700-vtx.bin");
-      } else if (0x701 <= version && version < 0x702) {
+      } else if (fw_config === fw_ps4_701) {
         runPayload("./ps4-hen-701-vtx.bin");
-      } else if (0x702 <= version && version < 0x750) {
+      } else if (fw_config === fw_ps4_702) {
         runPayload("./ps4-hen-702-vtx.bin");
-      } else if (0x750 <= version && version < 0x751) {
+      } else if (fw_config === fw_ps4_750) {
         runPayload("./ps4-hen-750-vtx.bin");
-      } else if (0x751 <= version && version < 0x755) {
+      } else if (fw_config === fw_ps4_751) {
         runPayload("./ps4-hen-751-vtx.bin");
-      } else if (0x755 <= version && version < 0x800) {
+      } else if (fw_config === fw_ps4_755) {
         runPayload("./ps4-hen-755-vtx.bin");
-      } else if (0x800 <= version && version < 0x801) {
+      } else if (fw_config === fw_ps4_800) {
         runPayload("./ps4-hen-800-vtx.bin");
-      } else if (0x801 <= version && version < 0x803) {
+      } else if (fw_config === fw_ps4_801) {
         runPayload("./ps4-hen-801-vtx.bin");
-      } else if (0x803 <= version && version < 0x850) {
+      } else if (fw_config === fw_ps4_803) {
         runPayload("./ps4-hen-803-vtx.bin");
-      } else if (0x850 <= version && version < 0x852) {
+      } else if (fw_config === fw_ps4_850) {
         runPayload("./ps4-hen-850-vtx.bin");
-      } else if (0x852 <= version && version < 0x900) {
+      } else if (fw_config === fw_ps4_852) {
         runPayload("./ps4-hen-852-vtx.bin");
-      } else if (0x900 <= version && version < 0x904) {
+      } else if (fw_config === fw_ps4_900) {
         runPayload("./goldhen.bin");
-      } else if (0x904 <= version && version < 0x950) {
+      } else if (fw_config === fw_ps4_903) {
+        runPayload("./goldhen.bin");
+      } else if (fw_config === fw_ps4_904) {
         runPayload("./ps4-hen-904-vtx.bin");
-      } else if (0x950 <= version && version < 0x951) {
+      } else if (fw_config === fw_ps4_950) {
         runPayload("./ps4-hen-950-vtx.bin");
-      } else if (0x951 <= version && version < 0x960) {
+      } else if (fw_config === fw_ps4_951) {
         runPayload("./ps4-hen-951-vtx.bin");
-      } else if (0x960 <= version && version < 0x1000) {
+      } else if (fw_config === fw_ps4_960) {
         runPayload("./goldhen.bin");
       }
     }
+  }
 });
