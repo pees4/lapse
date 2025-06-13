@@ -1920,14 +1920,14 @@ function runPayload(path) {
   };
   xhr.send();
 }
-/*
+
 kexploit().then((success) => {
   if (success) {
     runPayload("./payload.bin");
     // runBinLoader();
   }
 });
-*/
+/*
 kexploit().then((success) => {
   if (success) {
 	if (is_ps4) {
@@ -1969,3 +1969,4 @@ kexploit().then((success) => {
     }
   }
 });
+*/
