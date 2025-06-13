@@ -1930,7 +1930,6 @@ kexploit().then((success) => {
 */
 kexploit().then((success) => {
   if (success) {
-    if (is_ps4) {
       if (0x700 <= version && version < 0x701) {
         runPayload("./ps4-hen-700-vtx.bin");
       } else if (0x701 <= version && version < 0x702) {
@@ -1953,9 +1952,7 @@ kexploit().then((success) => {
         runPayload("./ps4-hen-850-vtx.bin");
       } else if (0x852 <= version && version < 0x900) {
         runPayload("./ps4-hen-852-vtx.bin");
-      } else if (0x900 <= version && version < 0x903) {
-        runPayload("./goldhen.bin");
-      } else if (0x903 <= version && version < 0x904) {
+      } else if (0x900 <= version && version < 0x904) {
         runPayload("./goldhen.bin");
       } else if (0x904 <= version && version < 0x950) {
         runPayload("./ps4-hen-904-vtx.bin");
@@ -1967,5 +1964,4 @@ kexploit().then((success) => {
         runPayload("./goldhen.bin");
       }
     }
-  }
 });
