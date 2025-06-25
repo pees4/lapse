@@ -36,9 +36,9 @@ import * as rop from "./module/chain.mjs";
 import * as config from "./config.mjs";
 
 // static imports for firmware configurations
-import * as fw_ps4_700 from "./lapse/ps4/700.mjs";
-import * as fw_ps4_750 from "./lapse/ps4/750.mjs";
-import * as fw_ps4_751 from "./lapse/ps4/751.mjs";
+// import * as fw_ps4_700 from "./lapse/ps4/700.mjs";
+// import * as fw_ps4_750 from "./lapse/ps4/750.mjs";
+// import * as fw_ps4_751 from "./lapse/ps4/751.mjs";
 import * as fw_ps4_800 from "./lapse/ps4/800.mjs";
 import * as fw_ps4_850 from "./lapse/ps4/850.mjs";
 import * as fw_ps4_852 from "./lapse/ps4/852.mjs";
@@ -72,12 +72,12 @@ const [is_ps4, version] = (() => {
 
 // Pemetaan versi firmware ke file payload
 const payloadMap = {
-  0x700: "ps4-hen-700-vtx.bin", // 7.00
-  0x701: "ps4-hen-700-vtx.bin", // 7.01
-  0x702: "ps4-hen-700-vtx.bin", // 7.02
-  0x750: "ps4-hen-750-vtx.bin", // 7.50
-  0x751: "ps4-hen-751-vtx.bin", // 7.51
-  0x755: "ps4-hen-751-vtx.bin", // 7.55
+  // 0x700: "ps4-hen-700-vtx.bin", // 7.00
+  // 0x701: "ps4-hen-700-vtx.bin", // 7.01
+  // 0x702: "ps4-hen-700-vtx.bin", // 7.02
+  // 0x750: "ps4-hen-750-vtx.bin", // 7.50
+  // 0x751: "ps4-hen-751-vtx.bin", // 7.51
+  // 0x755: "ps4-hen-751-vtx.bin", // 7.55
   0x800: "ps4-hen-800-vtx.bin", // 8.00
   0x801: "ps4-hen-800-vtx.bin", // 8.01
   0x803: "ps4-hen-803-vtx.bin", // 8.03
@@ -93,19 +93,20 @@ const payloadMap = {
 
 // Dapatkan nama file payload berdasarkan versi firmware
 function getPayloadFile(version) {
-  if (0x700 <= version && version < 0x701) {
-    return payloadMap[0x700];
-  } else if (0x701 <= version && version < 0x702) {
-    return payloadMap[0x701];
-  } else if (0x702 <= version && version < 0x750) {
-    return payloadMap[0x702];
-  } else if (0x750 <= version && version < 0x751) {
-    return payloadMap[0x750];
-  } else if (0x751 <= version && version < 0x755) {
-    return payloadMap[0x751];
-  } else if (0x755 <= version && version < 0x800) {
-    return payloadMap[0x755];
-  } else if (0x800 <= version && version < 0x801) {
+  // if (0x700 <= version && version < 0x701) {
+    // return payloadMap[0x700];
+  // } else if (0x701 <= version && version < 0x702) {
+    // return payloadMap[0x701];
+  // } else if (0x702 <= version && version < 0x750) {
+    // return payloadMap[0x702];
+  // } else if (0x750 <= version && version < 0x751) {
+    // return payloadMap[0x750];
+  // } else if (0x751 <= version && version < 0x755) {
+    // return payloadMap[0x751];
+  // } else if (0x755 <= version && version < 0x800) {
+    // return payloadMap[0x755];
+  // } else 
+	if (0x800 <= version && version < 0x801) {
     return payloadMap[0x800];
   } else if (0x801 <= version && version < 0x803) {
     return payloadMap[0x801];
@@ -134,13 +135,14 @@ function getPayloadFile(version) {
 // set per-console/per-firmware offsets
 const fw_config = (() => {
   if (is_ps4) {
-    if (0x700 <= version && version < 0x750) {
-      return fw_ps4_700;
-    } else if (0x750 <= version && version < 0x751) {
-      return fw_ps4_750;
-    } else if (0x751 <= version && version < 0x800) {
-      return fw_ps4_751;
-    } else if (0x800 <= version && version < 0x850) {
+    // if (0x700 <= version && version < 0x750) {
+      // return fw_ps4_700;
+    // } else if (0x750 <= version && version < 0x751) {
+      // return fw_ps4_750;
+    // } else if (0x751 <= version && version < 0x800) {
+      // return fw_ps4_751;
+    // } else 
+	if (0x800 <= version && version < 0x850) {
       return fw_ps4_800;
     } else if (0x850 <= version && version < 0x852) {
       return fw_ps4_850;
@@ -1322,7 +1324,8 @@ async function patch_kernel(kbase, kmem, p_ucred, restore_info) {
   if (!is_ps4) {
     throw RangeError("ps5 kernel patching unsupported");
   }
-  if (!(0x700 <= version && version < 0x1000)) {
+  // if (!(0x700 <= version && version < 0x1000)) {
+	if (!(0x800 <= version && version < 0x1000)) {
     throw RangeError("kernel patching unsupported");
   }
 
