@@ -69,7 +69,7 @@ const [is_ps4, version] = (() => {
 
   return [is_ps4, version];
 })();
-
+/*
 // Pemetaan versi firmware ke file payload
 const payloadMap = {
   // 0x700: "ps4-hen-700-vtx.bin", // 7.00
@@ -131,28 +131,37 @@ function getPayloadFile(version) {
   }
   throw new RangeError(`no payload available for firmware: ${hex(version)}`);
 }
-
+*/
 // set per-console/per-firmware offsets
 const fw_config = (() => {
   if (is_ps4) {
-    // if (0x700 <= version && version < 0x750) {
-      // return fw_ps4_700;
-    // } else if (0x750 <= version && version < 0x751) {
-      // return fw_ps4_750;
-    // } else if (0x751 <= version && version < 0x800) {
-      // return fw_ps4_751;
-    // } else 
+/*   if (0x700 <= version && version < 0x750) {
+      // 7.00, 7.01, 7.02
+      return fw_ps4_700;
+    } else if (0x750 <= version && version < 0x751) {
+      // 7.50
+      return fw_ps4_750;
+    } else if (0x751 <= version && version < 0x800) {
+      // 7.51, 7.55
+      return fw_ps4_751;
+    } else */
 	if (0x800 <= version && version < 0x850) {
+      // 8.00, 8.01, 8.03
       return fw_ps4_800;
     } else if (0x850 <= version && version < 0x852) {
+      // 8.50
       return fw_ps4_850;
     } else if (0x852 <= version && version < 0x900) {
+      // 8.52
       return fw_ps4_852;
     } else if (0x900 <= version && version < 0x903) {
+      // 9.00
       return fw_ps4_900;
     } else if (0x903 <= version && version < 0x950) {
+      // 9.03, 9.04
       return fw_ps4_903;
-     } else if (0x950 <= version && version < 0x1000) {
+    } else if (0x950 <= version && version < 0x1000) {
+      // 9.50, 9.51, 9.60
       return fw_ps4_950;
     }
   } else {
@@ -1681,7 +1690,7 @@ function runPayload(path) {
 
 kexploit().then((success) => {
   if (success) {
-    const payloadFile = getPayloadFile(version);
-    runPayload(`./${payloadFile}`);
+    runPayload("./goldhen.bin");
+    //runBinLoader();
   }
 });
